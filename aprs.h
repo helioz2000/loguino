@@ -18,6 +18,8 @@
 #ifndef __APRS_H__
 #define __APRS_H__
 
-void aprs_send();
+void aprs_beacon_send();
+void aprs_tele_send();
+void aprs_setup();
 
 #endif

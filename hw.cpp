@@ -31,7 +31,16 @@
 #include <avr/sleep.h>
 #include <pins_arduino.h>
 
-static MCP9808 tx_temp_sensor;
+/****** Power Saving Selay ******/
+void psDelay(uint32_t delay_time) {
+  uint32_t timeout = millis() + delay_time;
+  while(1) {
+    if ((int32_t) (millis() - timeout) >= 0) {
+      return;
+    }
+  power_save();
+  }
+}
 
 /****** Pin *******/
 
@@ -132,6 +141,7 @@ void power_save()
   sleep_disable();  // Resume after wake up
   power_all_enable();
 }
+
 
 
 /****** Buzzer ******/

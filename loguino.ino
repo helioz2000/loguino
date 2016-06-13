@@ -35,20 +35,14 @@
 
 #endif
 
-
 // Trackuino custom libs
 #include "config.h"
 #include "afsk_avr.h"
-//#include "afsk_pic32.h"
 #include "aprs.h"
-//#include "buzzer.h"
 #include "gps.h"
-//#include "pin.h"
-//#include "power.h"
 #include "hw.h"
 #include "sensors.h"
-#include "MCP9808.h"
-//#include "sensors_pic32.h"
+//#include "MCP9808.h"
 
 // Arduino/AVR libs
 #if (ARDUINO + 1) >= 100
@@ -61,9 +55,8 @@
 static const uint32_t VALID_POS_TIMEOUT = 2000;  // ms
 
 // Module variables
-static int32_t next_aprs = 0;
-
-// static MCP9808 tx_temp_sensor;
+static int32_t next_aprs_beacon = 0;
+static int32_t next_aprs_telemetry = 0;
 
 void setup()
 {
@@ -79,33 +72,37 @@ void setup()
   afsk_setup();
 //  gps_setup();
   sensors_setup();
-
+  aprs_setup();
   
-
-/*
 #ifdef DEBUG_SENS
-  Serial.print("Ti=");
-  Serial.print(sensors_int_lm60());
-  Serial.print(", Te=");
-  Serial.print(sensors_ext_lm60());
-  Serial.print(", Vin=");
-  Serial.println(sensors_vin());
+
+    Serial.print("TX temp=");
+    Serial.println(sensors_tx_temp());
+
+//  Serial.print("Ti=");
+//  Serial.print(sensors_int_lm60());
+//  Serial.print(", Te=");
+//  Serial.print(sensors_ext_lm60());
+//  Serial.print(", Vin=");
+//  Serial.println(sensors_vin());
 #endif
-*/
+
   // Do not start until we get a valid time reference
   // for slotted transmissions.
-  if (APRS_SLOT >= 0) {
+  if (APRS_TELE_SLOT >= 0) {
     do {
       while (! Serial.available())
         power_save();
     } while (! gps_decode(Serial.read()));
     
-    next_aprs = millis() + 1000 *
-      (APRS_PERIOD - (gps_seconds + APRS_PERIOD - APRS_SLOT) % APRS_PERIOD);
+    next_aprs_telemetry = millis() + 1000 *
+      (APRS_TELE_PERIOD - (gps_seconds + APRS_TELE_PERIOD - APRS_TELE_SLOT) % APRS_TELE_PERIOD);
   }
   else {
-    next_aprs = millis();
-  }  
+    next_aprs_telemetry = millis();
+  }
+
+  next_aprs_beacon = next_aprs_telemetry + 300;  
   // TODO: beep while we get a fix, maybe indicating the number of
   // visible satellites by a series of short beeps?
 }
@@ -131,12 +128,28 @@ void get_pos()
 
 void loop()
 {
-  float tx_temp = 0.0;
-  // Time for another APRS frame
-  if ((int32_t) (millis() - next_aprs) >= 0) {
-//    get_pos();
-    aprs_send();
-    next_aprs += APRS_PERIOD * 1000L;
+   
+  // Check for another Telemetry frame
+  if ((int32_t) (millis() - next_aprs_telemetry) >= 0) {
+    aprs_tele_send();
+    next_aprs_telemetry += APRS_TELE_PERIOD * 1000L;
+    while (afsk_flush()) {
+      power_save();
+    }
+#ifdef DEBUG_MODEM
+    // Show modem ISR stats from the previous transmission
+    afsk_debug();
+#endif
+#ifdef DEBUG_SENS
+    sensors_debug();
+#endif
+
+  }
+    
+  // Check for another Beacon frame
+  if ((int32_t) (millis() - next_aprs_beacon) >= 0) {
+    aprs_beacon_send();
+    next_aprs_beacon += APRS_BEACON_PERIOD * 1000L;
     while (afsk_flush()) {
       power_save();
     }
@@ -144,13 +157,6 @@ void loop()
 #ifdef DEBUG_MODEM
     // Show modem ISR stats from the previous transmission
     afsk_debug();
-#endif
-
-#ifdef DEBUG_SENS
-    // show sensor redings
-    tx_temp = tx_temp_sensor.readTempC();
-    Serial.print(", TX temp=");
-    Serial.println(tx_temp);
 #endif
 
   }

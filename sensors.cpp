@@ -33,6 +33,9 @@
 #  include <WProgram.h>
 #endif
 
+// Module Variables
+static MCP9808 tx_temp_sensor;
+
 /*
  * sensors_aref: measure an external voltage hooked up to the AREF pin,
  * optionally (and recommendably) through a pull-up resistor. This is
@@ -74,10 +77,36 @@ void sensors_setup()
   tx_temp_sensor.begin();
 }
 
+/*** TX temperature sensor ***/
 float sensors_tx_temp()
 {
-  
+  return tx_temp_sensor.readTempC();
 }
+
+/*** Environment temperature sensor ***/
+float sensors_env_temp()
+{
+  return tx_temp_sensor.readTempC();
+}
+
+/*** Supply Voltage sensor ***/
+float sensors_voltage()
+{
+  return 13.8;
+}
+
+/*** Current sensor ***/
+float sensors_current()
+{
+  return 0.8;
+}
+
+/*** Power Consumption ***/
+float sensors_power()
+{
+  return 11.04;
+}
+
 
 long sensors_internal_temp()
 {
@@ -142,6 +171,23 @@ int sensors_vin()
   return vin;
 }
 
-
 #endif
+
+#ifdef DEBUG_SENS
+  void sensors_debug()
+  {
+    // show sensor readings
+    Serial.print("TX temp=");
+    Serial.print(sensors_tx_temp());
+    Serial.print(", Env temp=");
+    Serial.print(sensors_env_temp());
+    Serial.print(", V=");
+    Serial.print(sensors_voltage());
+    Serial.print(", I=");
+    Serial.print(sensors_current());
+    Serial.print(", P=");
+    Serial.println(sensors_power());  
+  }
+#endif
+
 #endif // ifdef AVR

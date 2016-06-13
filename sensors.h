@@ -22,6 +22,10 @@
 void sensors_setup();
 
 float sensors_tx_temp();
+float sensors_env_temp();
+float sensors_voltage();
+float sensors_current();
+float sensors_power();
 /*
 unsigned long sensors_aref();
 long sensors_internal_temp();
@@ -29,5 +33,10 @@ int sensors_int_lm60();
 int sensors_ext_lm60();
 int sensors_vin();
 */
+
+#ifdef DEBUG_SENS
+  void sensors_debug();
+#endif
+
 #endif // ifndef __SENSORS_H__
 #endif // ifdef AVR

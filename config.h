@@ -64,7 +64,7 @@
 // APRS comment: this goes in the comment portion of the APRS message. You
 // might want to keep this short. The longer the packet, the more vulnerable
 // it is to noise. 
-#define APRS_COMMENT    "VK3ERW TNC modem test V1.1"
+#define APRS_COMMENT    "VK3ERW Loguino V0.1"
 
 
 // --------------------------------------------------------------------------
@@ -78,25 +78,30 @@
 // Tracker config (trackuino.pde)
 // --------------------------------------------------------------------------
 
-// APRS packets are slotted so that multiple trackers can be used without
-// them stepping on one another. The transmission times are governed by
+// APRS Telemetry packets can be slotted so that each Telemetry packet
+// is sent at a specific time. The transmission times are governed by
 // the formula:
 //
-//         APRS_SLOT (seconds) + n * APRS_PERIOD (seconds)
+//         APRS_TELE_SLOT (seconds) + n * APRS_TELE_PERIOD (seconds)
 //
-// When launching multiple balloons, use the same APRS_PERIOD in all balloons
-// and set APRS_SLOT so that the packets are spaced equally in time.
-// Eg. for two balloons and APRS_PERIOD = 60, set APRS_SLOT to 0 and 30, 
-// respectively. The first balloon will transmit at 00:00:00, 00:01:00, 
-// 00:02:00, etc. and the second balloon will transmit at 00:00:30, 00:01:30,
-// 00:02:30, etc.
-#define APRS_SLOT     -1     // seconds. -1 disables slotted transmissions
-#define APRS_PERIOD   10 //300    // seconds
+// For APRS_TELE_PERID 60: 
+// When Slot is 0 Telemetry will transmit at 00:00:00, 00:01:00, etc
+// When Slot is 30 Telemtry will transmit at 00:00:30, 00:01:30, etc
+//
+// NOTE: Telemetry period should be as high as possible to avoid APRS 
+//       network overload. Recommendation of fixed stations: 300 sec
+//
+#define APRS_TELE_SLOT     -1     // seconds. -1 disables slotted transmissions
+#define APRS_TELE_PERIOD   60 //300    // seconds
+#define APRS_BEACON_PERIOD  300 //1800  // 30 minutes
 
 // GPS baud rate (in bits per second). This is also the baud rate at which
 // debug data will be printed out the serial port.
 #define GPS_BAUDRATE  9600
 
+// Latitude and Longitude definition
+#define APRS_POS_LAT "3658.45S"
+#define APRS_POS_LONG "14708.37E"
 
 // --------------------------------------------------------------------------
 // Modem config (afsk.cpp)
@@ -227,7 +232,7 @@
 // #define DEBUG_MODEM  // Modem ISR overrun and profiling
 // #define DEBUG_AFSK   // AFSK (modulation) output
  #define DEBUG_RESET  // AVR reset
- #define DEBUG_SENS   // Sensors
+// #define DEBUG_SENS   // Sensors
 
 
 #endif

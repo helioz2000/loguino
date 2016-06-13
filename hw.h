@@ -20,6 +20,8 @@
 
 #include <stdint.h>
 
+void psDelay(uint32_t delay_time);
+
 void buzzer_setup();
 void buzzer_on();
 void buzzer_off();
